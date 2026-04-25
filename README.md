@@ -2,6 +2,8 @@
 
 VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan 时的 Token 用量、模型分布、Context 使用率、输出速度等信息。
 
+![插件预览](screenshots/VSCODE插件.png)
+
 ## 截图预览
 
 ### 状态栏
