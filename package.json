@@ -1,0 +1,79 @@
+{
+  "name": "glm-codingplan-monitor-for-cc",
+  "displayName": "GLM CodingPlan Monitor for CC",
+  "description": "在 VSCode 状态栏中显示 Claude Code 的 GLM Coding Plan 配额用量、模型分布、Context 使用率、输出速度等信息",
+  "version": "0.2.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "glmMonitor.showQuota",
+        "title": "GLM: 显示 Token 用量图表"
+      },
+      {
+        "command": "glmMonitor.showDetails",
+        "title": "GLM: 显示监控详情"
+      }
+    ],
+    "configuration": {
+      "title": "GLM CodingPlan Monitor",
+      "properties": {
+        "glmMonitor.refreshInterval": {
+          "type": "number",
+          "default": 1000,
+          "description": "数据刷新间隔（毫秒）"
+        },
+        "glmMonitor.showTokenUsage": {
+          "type": "boolean",
+          "default": true,
+          "description": "显示 24h Token 用量"
+        },
+        "glmMonitor.showModel": {
+          "type": "boolean",
+          "default": true,
+          "description": "显示模型名称"
+        },
+        "glmMonitor.showContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "显示 Context 使用率"
+        },
+        "glmMonitor.showSpeed": {
+          "type": "boolean",
+          "default": true,
+          "description": "显示输出速度"
+        },
+        "glmMonitor.showPrompts": {
+          "type": "boolean",
+          "default": true,
+          "description": "显示 API 调用次数"
+        },
+        "glmMonitor.showQuota": {
+          "type": "boolean",
+          "default": true,
+          "description": "显示 GLM Coding Plan 配额信息"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}
