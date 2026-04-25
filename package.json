@@ -4,6 +4,10 @@
   "description": "在 VSCode 状态栏中显示 Claude Code 的 GLM Coding Plan 配额用量、模型分布、Context 使用率、输出速度等信息",
   "version": "0.2.0",
   "publisher": "local",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brucetw/glm-codingplan-monitor-for-cc.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
