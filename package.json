@@ -66,6 +66,16 @@
           "type": "boolean",
           "default": true,
           "description": "显示 GLM Coding Plan 配额信息"
+        },
+        "glmMonitor.contextBarWidth": {
+          "type": "number",
+          "default": 10,
+          "description": "上下文进度条格子数量"
+        },
+        "glmMonitor.quotaBarWidth": {
+          "type": "number",
+          "default": 10,
+          "description": "5小时限额进度条格子数量"
         }
       }
     }

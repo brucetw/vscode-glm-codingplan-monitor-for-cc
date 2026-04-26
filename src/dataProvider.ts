@@ -489,7 +489,7 @@ async function fetchBucketedUsage(period: '24h' | 'today' | '7d' | '30d'): Promi
         const modelNames = modelDataList.map(m => m.modelName)
 
         // 构建 buckets
-        const buckets: UsageBucket[] = []
+        let buckets: UsageBucket[] = []
         for (let i = 0; i < xTime.length; i++) {
             const models: { name: string; tokens: number }[] = []
             for (let mi = 0; mi < modelNames.length; mi++) {
@@ -503,6 +503,30 @@ async function fetchBucketedUsage(period: '24h' | 'today' | '7d' | '30d'): Promi
                 totalTokens: tokensUsage[i] || 0,
                 models,
             })
+        }
+
+        // 7d 模式：将4小时桶合并为8小时桶，让柱子更粗
+        if (period === '7d' && buckets.length > 1) {
+            const merged: UsageBucket[] = []
+            for (let i = 0; i < buckets.length; i += 2) {
+                const a = buckets[i]
+                const b = buckets[i + 1]
+                if (b) {
+                    const modelMap = new Map<string, number>()
+                    for (const m of a.models) modelMap.set(m.name, m.tokens)
+                    for (const m of b.models) modelMap.set(m.name, (modelMap.get(m.name) || 0) + m.tokens)
+                    merged.push({
+                        label: a.label,
+                        totalTokens: a.totalTokens + b.totalTokens,
+                        models: Array.from(modelMap.entries())
+                            .map(([name, tokens]) => ({ name, tokens }))
+                            .filter(m => m.tokens > 0),
+                    })
+                } else {
+                    merged.push(a)
+                }
+            }
+            buckets = merged
         }
 
         const result: BucketedUsage = { period, buckets }

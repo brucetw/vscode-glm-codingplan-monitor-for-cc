@@ -16,6 +16,18 @@ export function activate(context: vscode.ExtensionContext) {
     // 防止重复激活
     if (manager) return
 
+    // 检测是否有同类扩展重复安装
+    const duplicates = vscode.extensions.all.filter(
+        e => e.id !== context.extension.id && e.id.toLowerCase().includes('codingplan-monitor')
+    )
+    if (duplicates.length > 0) {
+        const names = duplicates.map(e => `${e.id} (v${e.packageJSON.version})`).join(', ')
+        vscode.window.showWarningMessage(
+            `检测到重复安装的同类扩展: ${names}，建议卸载旧版本以避免冲突。`,
+            '知道了'
+        )
+    }
+
     const provider = new DataProvider()
     manager = new StatusBarManager(provider)
     manager.start()

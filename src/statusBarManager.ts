@@ -24,6 +24,7 @@ export class StatusBarManager {
     private provider: DataProvider
     private timer: ReturnType<typeof setInterval> | null = null
     private items: StatusItem[] = []
+    private configListener: vscode.Disposable | null = null
 
     constructor(provider: DataProvider) {
         this.provider = provider
@@ -42,12 +43,24 @@ export class StatusBarManager {
         this.refresh()
 
         this.timer = setInterval(() => this.refresh(), interval)
+
+        // 监听配置变更，重建 items
+        this.configListener = vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('glmMonitor')) {
+                this.stop()
+                this.start()
+            }
+        })
     }
 
     stop() {
         if (this.timer) {
             clearInterval(this.timer)
             this.timer = null
+        }
+        if (this.configListener) {
+            this.configListener.dispose()
+            this.configListener = null
         }
         for (const s of this.items) {
             s.item.dispose()
@@ -165,7 +178,7 @@ export class StatusBarManager {
                     item.hide()
                     return
                 }
-                const bar = progressBar(data.contextPct / 100, 10)
+                const bar = progressBar(data.contextPct / 100, vscode.workspace.getConfiguration('glmMonitor').get<number>('contextBarWidth', 10))
                 const color = data.contextPct > 80 ? '#f56c6c' : data.contextPct > 50 ? '#e6a23c' : undefined
                 item.text = `$(graph) ${bar} ${data.contextPct}%`
                 item.color = color
@@ -228,7 +241,7 @@ export class StatusBarManager {
                 const parts: string[] = []
 
                 if (data.quota5hPct > 0) {
-                    const bar = progressBar(data.quota5hPct / 100, 10)
+                    const bar = progressBar(data.quota5hPct / 100, vscode.workspace.getConfiguration('glmMonitor').get<number>('quotaBarWidth', 10))
                     parts.push(`5h ${bar} ${data.quota5hPct}%`)
                 }
                 if (data.quotaWeeklyPct > 0) {
