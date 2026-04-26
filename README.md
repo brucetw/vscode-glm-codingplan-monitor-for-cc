@@ -145,6 +145,13 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.2.0.vsix
 | `glmMonitor.showPrompts` | true | 显示 API 调用次数 |
 | `glmMonitor.showQuota` | true | 显示配额信息 |
 
+## 致谢
+
+本项目参考了以下开源项目，感谢作者的贡献：
+
+- [glm-plan-usage2](https://github.com/zwen64657/glm-plan-usage2)
+- [glm-cc-tps](https://github.com/xkwy521/glm-cc-tps)
+
 ## 许可
 
 MIT
