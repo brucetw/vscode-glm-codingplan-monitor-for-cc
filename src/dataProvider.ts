@@ -364,7 +364,10 @@ function toBucket(label: string, resp: ModelUsageResponse | null): UsageBucket {
     const models = (t.modelSummaryList || [])
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .map(s => ({ name: s.modelName, tokens: s.totalTokens }))
-    return { label, totalTokens: t.totalTokensUsage || 0, models }
+    const totalTokens = t.totalTokensUsage > 0
+        ? t.totalTokensUsage
+        : models.reduce((sum, m) => sum + m.tokens, 0)
+    return { label, totalTokens, models }
 }
 
 async function fetchQuota(): Promise<QuotaResult | null> {

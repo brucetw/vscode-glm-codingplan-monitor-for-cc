@@ -104,7 +104,7 @@ export class StatusBarManager {
         const status: StatusItem = {
             item,
             update(data) {
-                if (!data.active || data.usage24h.totalTokens <= 0) {
+                if (!data.active) {
                     item.hide()
                     return
                 }
@@ -240,20 +240,13 @@ export class StatusBarManager {
                 }
                 const parts: string[] = []
 
-                if (data.quota5hPct > 0) {
-                    const bar = progressBar(data.quota5hPct / 100, vscode.workspace.getConfiguration('glmMonitor').get<number>('quotaBarWidth', 10))
-                    parts.push(`5h ${bar} ${data.quota5hPct}%`)
-                }
+                const bar = progressBar(data.quota5hPct / 100, vscode.workspace.getConfiguration('glmMonitor').get<number>('quotaBarWidth', 10))
+                parts.push(`5h ${bar} ${data.quota5hPct}%`)
                 if (data.quotaWeeklyPct > 0) {
                     parts.push(`W:${data.quotaWeeklyPct}%`)
                 }
                 if (data.mcpPct > 0) {
                     parts.push(`MCP:${data.mcpPct}%`)
-                }
-
-                if (parts.length === 0) {
-                    item.hide()
-                    return
                 }
 
                 // 颜色
@@ -265,10 +258,8 @@ export class StatusBarManager {
 
                 // hover tooltip: 仅配额百分比
                 const tipLines: string[] = []
-                if (data.quota5hPct > 0) {
-                    const reset5h = data.quota5hResetTime > 0 ? new Date(data.quota5hResetTime).toLocaleTimeString() : '-'
-                    tipLines.push(`**5h 滚动窗口**: ${data.quota5hPct}%　重置: ${reset5h}`)
-                }
+                const reset5h = data.quota5hResetTime > 0 ? new Date(data.quota5hResetTime).toLocaleTimeString() : '-'
+                tipLines.push(`**5h 滚动窗口**: ${data.quota5hPct}%　重置: ${reset5h}`)
                 if (data.quotaWeeklyPct > 0) {
                     const resetW = data.quotaWeeklyResetTime > 0 ? new Date(data.quotaWeeklyResetTime).toLocaleString() : '-'
                     tipLines.push(`**周限制**: ${data.quotaWeeklyPct}%　重置: ${resetW}`)
