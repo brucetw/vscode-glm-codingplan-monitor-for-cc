@@ -434,9 +434,9 @@ async function fetchQuota(): Promise<QuotaResult | null> {
 const BUCKETED_CACHE_PATH = path.join(os.tmpdir(), 'claude-monitor-bucketed.json')
 const BUCKETED_CACHE_TTL = 3 * 60 * 1000
 
-interface BucketedCache {
+interface BucketedCacheEntry {
     ts: number
-    data: Record<string, BucketedUsage>
+    data: BucketedUsage
 }
 
 function periodTimeRange(period: '24h' | 'today' | '7d' | '30d'): { start: Date; end: Date } {
@@ -460,10 +460,11 @@ async function fetchBucketedUsage(period: '24h' | 'today' | '7d' | '30d'): Promi
 
     if (!apiBase || !token) return empty
 
-    // 检查缓存
-    const cached = readJsonFile<BucketedCache>(BUCKETED_CACHE_PATH)
-    if (cached && Date.now() - cached.ts < BUCKETED_CACHE_TTL && cached.data[period]) {
-        return cached.data[period]
+    // 检查缓存（每个周期独立时间戳）
+    const cached = readJsonFile<Record<string, BucketedCacheEntry>>(BUCKETED_CACHE_PATH)
+    const entry = cached?.[period]
+    if (entry && Date.now() - entry.ts < BUCKETED_CACHE_TTL) {
+        return entry.data
     }
 
     const headers = {
@@ -534,10 +535,10 @@ async function fetchBucketedUsage(period: '24h' | 'today' | '7d' | '30d'): Promi
 
         const result: BucketedUsage = { period, buckets }
 
-        // 更新缓存
-        const existing = cached?.data || {}
-        existing[period] = result
-        writeJsonFile(BUCKETED_CACHE_PATH, { ts: Date.now(), data: existing })
+        // 更新缓存（每个周期独立时间戳）
+        const existing = cached || {}
+        existing[period] = { ts: Date.now(), data: result }
+        writeJsonFile(BUCKETED_CACHE_PATH, existing)
 
         return result
     } catch {

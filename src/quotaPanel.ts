@@ -218,6 +218,19 @@ function formatTokens(n) {
     return String(n)
 }
 
+function extractTime(label) {
+    const m = label.match(/(\\d{1,2}:\\d{2})/)
+    return m ? m[1] : label
+}
+
+function extractDate(label) {
+    const m = label.match(/(\\d{4})-(\\d{1,2})-(\\d{1,2})/)
+    if (m) return m[2] + '-' + m[3]
+    const m2 = label.match(/(\\d{1,2}\\/\\d{1,2})/)
+    if (m2) return m2[0]
+    return label
+}
+
 const MODEL_COLORS = {
     'GLM-5.1': '#4A90D9', 'GLM-5-Turbo': '#50C878',
     'GLM-5V-Turbo': '#F5A623', 'GLM-5': '#9B59B6',
@@ -262,43 +275,52 @@ function renderChart(buckets, period) {
     // 收集X轴标签：根据period类型分别处理
     const xLabels = []
     if (period === 'today') {
-        // 当天模式：每小时显示
+        // 当天模式：只显示时间 HH:mm
         const step = count > 20 ? Math.ceil(count / 12) : 1
         for (let i = 0; i < count; i += step) {
-            xLabels.push({ pos: (i + 0.5) / count * 100, label: buckets[i].label })
+            xLabels.push({ pos: (i + 0.5) / count * 100, label: extractTime(buckets[i].label) })
         }
     } else if (period === '7d') {
-        // 7天模式：找到每天起始位置的桶，显示日期
+        // 7天模式：提取每天日期，显示 M/D 格式
         let lastDate = ''
         let foundAny = false
         for (let i = 0; i < count; i++) {
-            const dateMatch = buckets[i].label.match(/(\\d{4}-\\d{2}-\\d{2}|\\d+\\/\\d+)/)
-            if (dateMatch) {
-                const d = dateMatch[1]
-                if (d !== lastDate) {
-                    lastDate = d
-                    xLabels.push({ pos: i / count * 100, label: d })
-                    foundAny = true
-                }
+            const d = extractDate(buckets[i].label)
+            if (d !== lastDate) {
+                lastDate = d
+                xLabels.push({ pos: i / count * 100, label: d })
+                foundAny = true
             }
         }
-        // 兜底：如果没匹配到日期，按间隔显示
         if (!foundAny && count > 0) {
             const step = Math.ceil(count / 7)
             for (let i = 0; i < count; i += step) {
-                xLabels.push({ pos: (i + 0.5) / count * 100, label: buckets[i].label })
+                xLabels.push({ pos: (i + 0.5) / count * 100, label: extractTime(buckets[i].label) })
             }
         }
     } else if (period === '30d') {
-        // 30天模式：每隔2天显示一次日期
-        for (let i = 0; i < count; i += 2) {
-            xLabels.push({ pos: (i + 0.5) / count * 100, label: buckets[i].label })
+        // 30天模式：提取日期，显示约6个标签
+        const dates = []
+        let lastDate = ''
+        for (let i = 0; i < count; i++) {
+            const d = extractDate(buckets[i].label)
+            if (d !== lastDate) {
+                lastDate = d
+                dates.push({ pos: i / count * 100, label: d })
+            }
+        }
+        const step = Math.max(1, Math.ceil(dates.length / 6))
+        for (let i = 0; i < dates.length; i += step) {
+            xLabels.push(dates[i])
+        }
+        if (dates.length > 0 && xLabels.length > 0 && xLabels[xLabels.length - 1].label !== dates[dates.length - 1].label) {
+            xLabels.push(dates[dates.length - 1])
         }
     } else {
-        // 24小时模式：每小时显示
+        // 24小时模式：显示时间
         const step = count > 20 ? Math.ceil(count / 12) : 1
         for (let i = 0; i < count; i += step) {
-            xLabels.push({ pos: (i + 0.5) / count * 100, label: buckets[i].label })
+            xLabels.push({ pos: (i + 0.5) / count * 100, label: extractTime(buckets[i].label) })
         }
     }
 
