@@ -76,6 +76,8 @@ VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan �
 
 ## 安装
 
+> ⚠️ **升级提示**：如果之前安装过本项目早期版本（`claude-code-monitor` 或 `glm-codingplan-monitor-for-cc`），请先在 VSCode 扩展面板卸载旧版，再安装新版本——否则两个版本会同时运行，状态栏出现重复显示。从 `vscode-glm-codingplan-monitor-for-cc`（0.2.0 及以后）升级则会自动覆盖，无需此操作。
+
 ### 方式一：手动编译安装（推荐）
 
 ```bash
@@ -92,7 +94,7 @@ npm install
 npx vsce package
 
 # 5. 安装到 VSCode
-code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.0.vsix
+code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.1.vsix
 ```
 
 ### 方式二：让 AI 帮你安装
@@ -104,7 +106,7 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.0.vsix
 如果已有编译好的 `.vsix` 文件：
 
 ```bash
-code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.0.vsix
+code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.1.vsix
 ```
 
 或在 VSCode 中：`Ctrl+Shift+P` → 输入 `Extensions: Install from VSIX...` → 选择 vsix 文件。
@@ -150,6 +152,11 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.0.vsix
 | `glmMonitor.showQuota` | true | 显示配额信息 |
 
 ## 更新日志
+
+### v0.3.1（2026-06-16）
+
+- 🐛 重复安装检测补全关键词：现在也能识别早期版本 `claude-code-monitor`（0.1.0），避免与新版静默并存
+- 📝 安装文档增加「卸载旧版」升级提示
 
 ### v0.3.0（2026-06-16）
 

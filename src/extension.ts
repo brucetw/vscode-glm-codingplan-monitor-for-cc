@@ -16,9 +16,11 @@ export function activate(context: vscode.ExtensionContext) {
     // 防止重复激活
     if (manager) return
 
-    // 检测是否有同类扩展重复安装
+    // 检测是否有同类扩展重复安装（含本项目历史旧名）
+    const DUPLICATE_KEYWORDS = ['codingplan-monitor', 'claude-code-monitor']
     const duplicates = vscode.extensions.all.filter(
-        e => e.id !== context.extension.id && e.id.toLowerCase().includes('codingplan-monitor')
+        e => e.id !== context.extension.id &&
+            DUPLICATE_KEYWORDS.some(kw => e.id.toLowerCase().includes(kw))
     )
     if (duplicates.length > 0) {
         const names = duplicates.map(e => `${e.id} (v${e.packageJSON.version})`).join(', ')
