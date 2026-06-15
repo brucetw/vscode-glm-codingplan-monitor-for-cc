@@ -232,13 +232,14 @@ function extractDate(label) {
 }
 
 const MODEL_COLORS = {
-    'GLM-5.1': '#4A90D9', 'GLM-5-Turbo': '#50C878',
+    'GLM-5.2': '#1ABC9C', 'GLM-5.1': '#4A90D9', 'GLM-5-Turbo': '#50C878',
     'GLM-5V-Turbo': '#F5A623', 'GLM-5': '#9B59B6',
     'GLM-4.7': '#E67E22', 'GLM-4': '#E74C3C',
 }
 function modelColor(name) {
     if (MODEL_COLORS[name]) return MODEL_COLORS[name]
     const l = name.toLowerCase()
+    if (l.includes('glm-5.2')) return '#1ABC9C'
     if (l.includes('glm-5.1')) return '#4A90D9'
     if (l.includes('glm-5v')) return '#F5A623'
     if (l.includes('glm-5')) return '#50C878'

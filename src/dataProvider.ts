@@ -10,16 +10,21 @@ const SESSIONS_DIR = path.join(CLAUDE_DIR, 'sessions')
 const PROJECTS_DIR = path.join(CLAUDE_DIR, 'projects')
 
 // 模型对应的上下文窗口大小（tokens）
+// 注意：匹配时按 key 长度降序，避免 glm-5.2 误中 glm-5
 const CONTEXT_WINDOWS: Record<string, number> = {
+    'glm-5.2': 200000,   // 默认 200K；开启 1M 需后缀 [1m] 或设 CLAUDE_CODE_AUTO_COMPACT_WINDOW=1000000
+    'glm-5.1': 200000,
+    'glm-5': 200000,
+    'glm-4': 128000,
     'opus': 200000,
     'sonnet': 200000,
     'haiku': 200000,
-    'glm-5': 200000,
-    'glm-4': 128000,
 }
 
 // GLM 模型价格（每百万 tokens）
 const GLM_PRICING: Record<string, { input: number; output: number }> = {
+    'glm-5.2': { input: 10, output: 30 },   // 发布初期限时免费，沿用 glm-5 价格作参考
+    'glm-5.1': { input: 10, output: 30 },
     'glm-5': { input: 10, output: 30 },
     'glm-4': { input: 5, output: 15 },
 }
@@ -69,17 +74,19 @@ function httpGet(url: string, headers: Record<string, string> = {}, timeout = 50
 // ===== 模型名解析 =====
 function modelDisplayName(model: string): string {
     if (!model) return 'Unknown'
-    const clean = model.replace(/^(models\/|anthropic\/)/, '')
+    const clean = model.replace(/^(models\/|anthropic\/)/, '').replace(/\[1m\]/i, '')
     const lower = clean.toLowerCase()
     const verMatch = lower.match(/[-.](\d+)[-._](\d+)/)
 
     if (lower.includes('glm-5v')) return 'GLM-5V-Turbo'
+    if (lower.includes('glm-5.2') || lower.includes('glm-5-2')) return 'GLM-5.2'
     if (lower.includes('glm-5.1') || lower.includes('glm-5-1')) return 'GLM-5.1'
     if (lower.includes('glm-5-turbo')) return 'GLM-5-Turbo'
     if (lower.includes('glm-5')) {
         const sub = lower.match(/glm-5[.-]?(\d+)?/)
         return sub && sub[1] ? 'GLM-5.' + sub[1] : 'GLM-5'
     }
+    if (lower.includes('glm-x')) return 'GLM-X'
     if (lower.includes('glm-4')) {
         const sub = lower.match(/glm-4[.-]?(\w+)?/)
         return sub && sub[1] ? 'GLM-4-' + sub[1].toUpperCase() : 'GLM-4'
@@ -101,23 +108,50 @@ function modelDisplayName(model: string): string {
         const sub = lower.match(/gpt-4[.-]?(\d+)?/)
         return sub && sub[1] ? 'GPT-4.' + sub[1] : 'GPT-4'
     }
+    if (lower.includes('deepseek')) {
+        return 'DeepSeek-' + clean.replace(/^deepseek[-.]?/i, '').toUpperCase()
+    }
+    if (lower.includes('minimax')) return clean
     return '切换中...'
 }
 
+// 已知支持 1M 大上下文的模型关键字。JSONL 会剥离 GLM 的 [1m] 后缀，
+// 故需结合 CLAUDE_CODE_AUTO_COMPACT_WINDOW 判断；此处限定可升级窗口的型号，避免误判 glm-5.1/glm-4。
+const LARGE_CONTEXT_MODELS = ['glm-5.2', 'deepseek-v4-pro']
+
+// 读取 settings.json 中配置的自动压缩窗口（智谱文档：开启 1M 即设为 1000000）
+function getAutoCompactWindow(): number | null {
+    const settings = readJsonFile<{ env?: Record<string, string> }>(path.join(CLAUDE_DIR, 'settings.json'))
+    const raw = settings?.env?.CLAUDE_CODE_AUTO_COMPACT_WINDOW
+    if (!raw) return null
+    const n = parseInt(raw, 10)
+    return Number.isFinite(n) && n > 0 ? n : null
+}
+
 function contextWindowSize(model: string): number {
-    const lower = model.toLowerCase()
-    for (const [key, size] of Object.entries(CONTEXT_WINDOWS)) {
-        if (lower.includes(key)) return size
+    const lower = (model || '').toLowerCase()
+    // 1) 显式 1M 后缀（如 glm-5.2[1m]、deepseek-v4-pro[1m]）
+    if (lower.includes('[1m]')) return 1_000_000
+    // 2) 模型表基础窗口（keys 按长度降序，避免 glm-5.2 误中 glm-5）
+    let base = 200_000
+    for (const key of Object.keys(CONTEXT_WINDOWS).sort((a, b) => b.length - a.length)) {
+        if (lower.includes(key)) { base = CONTEXT_WINDOWS[key]; break }
     }
-    return 200000
+    // 3) 用户配置的压缩窗口：仅当模型支持大上下文时才采纳（兜住 JSONL 剥离 [1m] 的情况）
+    const auto = getAutoCompactWindow()
+    if (auto && auto > base && LARGE_CONTEXT_MODELS.some(k => lower.includes(k))) {
+        return auto
+    }
+    return base
 }
 
 function estimateCost(model: string, totalInput: number, totalOutput: number, cacheRead: number): number {
     const lower = model.toLowerCase()
 
-    // GLM 模型
-    for (const [key, pricing] of Object.entries(GLM_PRICING)) {
+    // GLM 模型（keys 按长度降序，避免 glm-5.2 误中 glm-5）
+    for (const key of Object.keys(GLM_PRICING).sort((a, b) => b.length - a.length)) {
         if (lower.includes(key)) {
+            const pricing = GLM_PRICING[key]
             return (totalInput * pricing.input + totalOutput * pricing.output) / 1_000_000
         }
     }

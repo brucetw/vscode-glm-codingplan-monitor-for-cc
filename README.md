@@ -2,6 +2,8 @@
 
 VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan 时的 Token 用量、模型分布、Context 使用率、输出速度等信息。
 
+> ✅ **v0.3.0 新增**：支持 **GLM-5.2 的 1M（100万）上下文**。自动识别模型名 `[1m]` 后缀与 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 配置，Context 使用率按实际窗口大小（200K / 1M）正确计算。
+
 ![插件预览](screenshots/VSCODE插件.png)
 
 ## 截图预览
@@ -45,6 +47,7 @@ VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan �
 ## 功能
 
 - **状态栏实时显示**：当前模型、Context 使用率、输出速度、API 调用次数、配额进度、24h Token 用量
+- **GLM-5.2 1M 上下文**：自动识别模型名 `[1m]` 后缀与 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 配置，Context 总量按实际窗口（200K 或 1M）正确计算
 - **分时段柱状图**：支持 24小时 / 当天 / 近7天 / 近30天 四种视图，按模型分色堆叠
 - **Tooltip 详情**：悬停柱子查看该时段各模型精确用量（带颜色标记）
 - **配额监控**：5小时滚动窗口、周限额、MCP 限额的百分比及重置时间
@@ -89,7 +92,7 @@ npm install
 npx vsce package
 
 # 5. 安装到 VSCode
-code --install-extension vscode-glm-codingplan-monitor-for-cc-0.2.0.vsix
+code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.0.vsix
 ```
 
 ### 方式二：让 AI 帮你安装
@@ -101,7 +104,7 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.2.0.vsix
 如果已有编译好的 `.vsix` 文件：
 
 ```bash
-code --install-extension vscode-glm-codingplan-monitor-for-cc-0.2.0.vsix
+code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.0.vsix
 ```
 
 或在 VSCode 中：`Ctrl+Shift+P` → 输入 `Extensions: Install from VSIX...` → 选择 vsix 文件。
@@ -123,6 +126,7 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.2.0.vsix
 
 | 模型 | 颜色 |
 |------|------|
+| GLM-5.2 | 🩵 青绿色 |
 | GLM-5.1 | 🔵 蓝色 |
 | GLM-5-Turbo | 🟢 绿色 |
 | GLM-5V-Turbo | 🟡 橙色 |
@@ -144,6 +148,20 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.2.0.vsix
 | `glmMonitor.showSpeed` | true | 显示输出速度 |
 | `glmMonitor.showPrompts` | true | 显示 API 调用次数 |
 | `glmMonitor.showQuota` | true | 显示配额信息 |
+
+## 更新日志
+
+### v0.3.0（2026-06-16）
+
+- ✨ **支持 GLM-5.2 的 1M 上下文**：自动识别模型名 `[1m]` 后缀与 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 配置，Context 使用率按实际窗口大小（200K / 1M）正确计算
+- 🐛 修复 Context 使用率虚高：GLM-5.2 之前被误按 200K 计算，实际应为 1M
+- 🐛 修复模型匹配优先级：`glm-5.2` 不再被 `glm-5` 误匹配（按 key 长度降序匹配）
+- ✨ 新增模型识别：GLM-5.2、GLM-X、DeepSeek、MiniMax
+- 🎨 柱状图新增 GLM-5.2 配色（青绿色 `#1ABC9C`）
+
+### v0.2.0
+
+- 分时段柱状图（24小时 / 当天 / 近7天 / 近30天）、配额监控、Token 用量统计、Session 管理等基础功能
 
 ## 致谢
 
