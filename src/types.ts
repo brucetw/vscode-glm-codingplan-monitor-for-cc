@@ -47,11 +47,9 @@ export interface UserEntry {
     uuid: string
 }
 
-/** 速度计算缓存 */
+/** 速度计算缓存（跨刷新持久化，用于 EMA 平滑） */
 export interface SpeedState {
     lastTimestamp: number
-    lastInputTokens: number
-    lastOutputTokens: number
     inputTps: number
     outputTps: number
 }
@@ -109,6 +107,7 @@ export interface MonitorData {
     contextTotal: number
     inputTps: number
     outputTps: number
+    speedAgeMs: number
     totalInputTokens: number
     totalOutputTokens: number
     cost: number

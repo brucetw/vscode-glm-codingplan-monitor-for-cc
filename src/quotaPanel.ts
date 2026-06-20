@@ -188,7 +188,7 @@ function getHtml(data: MonitorData): string {
 <div class="quota-row">
     ${data.quota5hPct > 0 ? '<div class="quota-card"><div class="label">5小时滚动窗口</div><div class="value">' + data.quota5hPct + '%</div><div class="reset">重置: ' + (data.quota5hResetTime > 0 ? new Date(data.quota5hResetTime).toLocaleTimeString() : '-') + '</div></div>' : ''}
     ${data.quotaWeeklyPct > 0 ? '<div class="quota-card"><div class="label">周限额</div><div class="value">' + data.quotaWeeklyPct + '%</div><div class="reset">重置: ' + (data.quotaWeeklyResetTime > 0 ? new Date(data.quotaWeeklyResetTime).toLocaleString() : '-') + '</div></div>' : ''}
-    ${data.mcpPct > 0 ? '<div class="quota-card"><div class="label">MCP</div><div class="value">' + data.mcpPct + '%</div><div class="reset">' + (data.mcpResetTime > 0 ? '重置: ' + new Date(data.mcpResetTime).toLocaleTimeString() : '') + '</div></div>' : ''}
+    ${data.mcpPct > 0 ? '<div class="quota-card"><div class="label">MCP</div><div class="value">' + data.mcpPct + '%</div><div class="reset">' + (data.mcpResetTime > 0 ? '重置: ' + new Date(data.mcpResetTime).toLocaleString() : '') + '</div></div>' : ''}
 </div>
 <div class="quota-row">
     <div class="quota-card"><div class="label">24小时用量</div><div class="value">${formatTokenCount(data.usage24h.totalTokens)}</div></div>

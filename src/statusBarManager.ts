@@ -88,7 +88,8 @@ export class StatusBarManager {
             this.items.push(this.createContextItem())
         }
         if (config.get<boolean>('showSpeed', true)) {
-            this.items.push(this.createOutputSpeedItem())
+            this.items.push(this.createSpeedItem('input'))
+            this.items.push(this.createSpeedItem('output'))
         }
         if (config.get<boolean>('showPrompts', true)) {
             this.items.push(this.createPromptItem())
@@ -193,8 +194,10 @@ export class StatusBarManager {
         return status
     }
 
-    private createOutputSpeedItem(): StatusItem {
-        const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80)
+    private createSpeedItem(kind: 'input' | 'output'): StatusItem {
+        const isOut = kind === 'output'
+        const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, isOut ? 80 : 81)
+        let lastTip = ''
         const status: StatusItem = {
             item,
             update(data) {
@@ -202,10 +205,23 @@ export class StatusBarManager {
                     item.hide()
                     return
                 }
-                const speed = data.outputTps
-                const str = speed > 0 ? speed.toFixed(1) : '--'
-                item.text = `$(arrow-down) ${str} t/s`
-                item.tooltip = new vscode.MarkdownString(`**输出速度**: ${str} tokens/s`)
+                const val = isOut ? data.outputTps : data.inputTps
+                const winSec = vscode.workspace.getConfiguration('glmMonitor').get<number>('speedWindowSeconds', 10)
+                const windowMs = Math.max(5, Math.round(winSec || 10)) * 1000
+                // ageMs < 窗口 = 实时（刚落盘）；超出但 <120s = 保持值（标灰）；超 120s 已归零
+                const realTime = isFinite(data.speedAgeMs) && data.speedAgeMs < windowMs
+                const str = val > 0 ? val.toFixed(1) : '--'
+                // 输出↑（出去）、输入↓（进来）
+                item.text = `$(${isOut ? 'arrow-up' : 'arrow-down'}) ${str} t/s`
+                // 无值不着色；实时按速度染色（<20红/20-60黄/≥60绿）；过时保持值标灰，避免误读为当前
+                item.color = val <= 0 ? undefined
+                    : realTime ? (val < 20 ? '#f56c6c' : val < 60 ? '#e6a23c' : '#67c23a')
+                    : '#909399'
+                const label = isOut ? '输出速度' : '输入速度'
+                // tooltip 只放静态说明(数值已在状态栏显示)。内容恒定 → 不再每秒赋值 → hover 不闪
+                const tip = `${label} · 状态栏数字为最近 ${winSec} 秒平均吞吐` +
+                    (isOut ? '' : '\n注:输入是突发的，数值波动属正常')
+                if (tip !== lastTip) item.tooltip = lastTip = tip
                 item.show()
             },
         }
@@ -265,7 +281,8 @@ export class StatusBarManager {
                     tipLines.push(`**周限制**: ${data.quotaWeeklyPct}%　重置: ${resetW}`)
                 }
                 if (data.mcpPct > 0) {
-                    tipLines.push(`**MCP**: ${data.mcpPct}%`)
+                    const resetMcp = data.mcpResetTime > 0 ? new Date(data.mcpResetTime).toLocaleString() : '-'
+                    tipLines.push(`**MCP**: ${data.mcpPct}%　重置: ${resetMcp}`)
                 }
                 if (tipLines.length > 0) {
                     item.tooltip = new vscode.MarkdownString(tipLines.join('\n\n'))

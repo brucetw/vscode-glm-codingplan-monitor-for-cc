@@ -1,6 +1,6 @@
 # GLM CodingPlan Monitor for CC
 
-VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan 时的 Token 用量、模型分布、Context 使用率、输出速度等信息。
+VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan 时的 Token 用量、模型分布、Context 使用率、输入/输出速度等信息。
 
 > ✅ **v0.3.0 新增**：支持 **GLM-5.2 的 1M（100万）上下文**。自动识别模型名 `[1m]` 后缀与 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 配置，Context 使用率按实际窗口大小（200K / 1M）正确计算。
 
@@ -10,7 +10,7 @@ VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan �
 
 ### 状态栏
 
-扩展在 VSCode 底部状态栏实时显示多项监控数据，从左到右依次为：当前模型名称、Context 使用率进度条、输出速度（tokens/s）、API 调用次数、套餐等级、配额百分比、24h Token 用量总量。
+扩展在 VSCode 底部状态栏实时显示多项监控数据，从左到右依次为：当前模型名称、Context 使用率进度条、输入/输出速度（↓输入/↑输出，tokens/s）、API 调用次数、套餐等级、配额百分比、24h Token 用量总量。
 
 ![状态栏](screenshots/状态栏.png)
 
@@ -46,7 +46,7 @@ VSCode 扩展，在状态栏中实时监控 Claude Code 使用 GLM Coding Plan �
 
 ## 功能
 
-- **状态栏实时显示**：当前模型、Context 使用率、输出速度、API 调用次数、配额进度、24h Token 用量
+- **状态栏实时显示**：当前模型、Context 使用率、输入/输出速度、API 调用次数、配额进度、24h Token 用量
 - **GLM-5.2 1M 上下文**：自动识别模型名 `[1m]` 后缀与 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 配置，Context 总量按实际窗口（200K 或 1M）正确计算
 - **分时段柱状图**：支持 24小时 / 当天 / 近7天 / 近30天 四种视图，按模型分色堆叠
 - **Tooltip 详情**：悬停柱子查看该时段各模型精确用量（带颜色标记）
@@ -94,7 +94,7 @@ npm install
 npx vsce package
 
 # 5. 安装到 VSCode
-code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.1.vsix
+code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.6.vsix
 ```
 
 ### 方式二：让 AI 帮你安装
@@ -106,7 +106,7 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.1.vsix
 如果已有编译好的 `.vsix` 文件：
 
 ```bash
-code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.1.vsix
+code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.6.vsix
 ```
 
 或在 VSCode 中：`Ctrl+Shift+P` → 输入 `Extensions: Install from VSIX...` → 选择 vsix 文件。
@@ -147,11 +147,20 @@ code --install-extension vscode-glm-codingplan-monitor-for-cc-0.3.1.vsix
 | `glmMonitor.showTokenUsage` | true | 显示 24h Token 用量 |
 | `glmMonitor.showModel` | true | 显示模型名称 |
 | `glmMonitor.showContext` | true | 显示 Context 使用率 |
-| `glmMonitor.showSpeed` | true | 显示输出速度 |
+| `glmMonitor.showSpeed` | true | 显示输入/输出速度 |
+| `glmMonitor.speedWindowSeconds` | 10 | 速度平均统计窗口（秒），取该窗口内的平均吞吐 |
 | `glmMonitor.showPrompts` | true | 显示 API 调用次数 |
 | `glmMonitor.showQuota` | true | 显示配额信息 |
 
 ## 更新日志
+
+### v0.3.6（2026-06-20）
+
+- ✨ 状态栏速度拆为 **↓输入 / ↑输出** 两个独立项
+- 🐛 **速度算法治本**：用 user→assistant 真实墙钟耗时替代相邻落盘差作分母，丢弃隐含速度 >1000 t/s 的配对失真轮，根治长回复被算出几千 t/s 的问题
+- 🐛 修复速度项 hover tooltip 闪烁：改纯静态说明，内容恒定不再每秒赋值
+- ✨ 新增 `speedWindowSeconds` 配置项（速度平均统计窗口，默认 10 秒）
+- 🐛 MCP 重置时间改用完整日期时间显示
 
 ### v0.3.1（2026-06-16）
 

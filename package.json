@@ -2,7 +2,7 @@
   "name": "vscode-glm-codingplan-monitor-for-cc",
   "displayName": "GLM CodingPlan Monitor for CC",
   "description": "在 VSCode 状态栏中显示 Claude Code 的 GLM Coding Plan 配额用量、模型分布、Context 使用率、输出速度等信息",
-  "version": "0.3.1",
+  "version": "0.3.6",
   "publisher": "local",
   "repository": {
     "type": "git",
@@ -76,6 +76,12 @@
           "type": "number",
           "default": 10,
           "description": "5小时限额进度条格子数量"
+        },
+        "glmMonitor.speedWindowSeconds": {
+          "type": "number",
+          "default": 10,
+          "minimum": 5,
+          "description": "输出/输入速度的平均统计窗口（秒），取该窗口内的平均吞吐，避免单点抖动"
         }
       }
     }

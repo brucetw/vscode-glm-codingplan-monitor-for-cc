@@ -40,6 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
         lines.push(`模型: ${data.modelName || '-'}`)
         lines.push(`Context: ${data.contextPct}% (${formatTokenCount(data.contextUsed)}/${formatTokenCount(data.contextTotal)})`)
         lines.push(`输出速度: ${data.outputTps.toFixed(1)} t/s`)
+        lines.push(`输入速度: ${data.inputTps.toFixed(1)} t/s`)
         lines.push(`花费: $${data.cost.toFixed(4)}`)
         lines.push(`调用: ${data.promptCount} 次`)
         if (data.quota5hPct > 0) lines.push(`5h配额: ${data.quota5hPct}%`)
